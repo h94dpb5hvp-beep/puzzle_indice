@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nos Souvenirs en Puzzle — Manon & Tim</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  body {
+    background: linear-gradient(135deg, #1a0b1c 0%, #2d132c 50%, #19192c 100%);
+    color: #fff;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+  }
+  .container {
+    width: 100%;
+    max-width: 520px;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 117, 143, 0.3);
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+    margin: auto;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .badge {
+    background: #e63946;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .timer {
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffd166;
+  }
+  h1 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #ffccd5;
+    text-align: center;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #e2e8f0;
+    text-align: center;
+    margin-bottom: 18px;
+    line-height: 1.4;
+  }
+  /* Zone des indices */
+  .clues-box {
+    background: rgba(15, 23, 42, 0.65);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 16px;
+    border-left: 4px solid #ff4d6d;
+  }
+  .clue-item {
+    font-size: 14px;
+    margin-bottom: 8px;
+    line-height: 1.45;
+  }
+  .clue-item:last-child {
+    margin-bottom: 0;
+  }
+  .clue-label {
+    color: #ff758f;
+    font-weight: 700;
+  }
+  .btn-hint {
+    background: transparent;
+    border: 1px dashed #ff758f;
+    color: #ffccd5;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  /* Formulaire mot-clé */
+  .unlock-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  input[type="text"] {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(15, 23, 42, 0.8);
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+  }
+  input[type="text"]:focus {
+    border-color: #ff4d6d;
+  }
+  .btn-primary {
+    background: #e63946;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.15s;
+  }
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
+  .error-msg {
+    color: #ff8fa3;
+    font-size: 13px;
+    min-height: 20px;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  /* Grille Puzzle */
+  #puzzle-section {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+  }
+  .puzzle-help {
+    font-size: 13px;
+    color: #cbd5e1;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .moves-counter {
+    font-size: 13px;
+    color: #ffd166;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  #puzzle-board {
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 1 / 1;
+    display: grid;
+    gap: 3px;
+    background: #0f172a;
+    padding: 4px;
+    border-radius: 12px;
+    border: 2px solid #ff758f;
+    touch-action: manipulation;
+  }
+  .tile {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    cursor: pointer;
+    background-repeat: no-repeat;
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  .tile.selected {
+    transform: scale(0.94);
+    box-shadow: 0 0 0 3px #ffd166;
+    z-index: 2;
+  }
+  /* Message de réussite du puzzle */
+  #success-box {
+    display: none;
+    margin-top: 16px;
+    background: rgba(42, 157, 143, 0.22);
+    border: 1px solid #2a9d8f;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    width: 100%;
+  }
+  #success-box p {
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 14px;
+    color: #f1faee;
+  }
+  .moves-badge {
+    display: inline-block;
+    background: rgba(15, 23, 42, 0.65);
+    color: #ffd166;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  /* Écran final */
+  #summary-section {
+    display: none;
+  }
+  .stat-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .stat-card {
+    background: rgba(15, 23, 42, 0.7);
+    padding: 14px;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffd166;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: #cbd5e1;
+    margin-top: 4px;
+  }
+  .recap-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .recap-thumb {
+    width: 62px;
+    height: 62px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 117, 143, 0.5);
+    flex-shrink: 0;
+  }
+  .recap-details {
+    flex: 1;
+  }
+  .recap-title {
+    font-weight: 700;
+    color: #ff758f;
+    margin-bottom: 4px;
+  }
+  .btn-pdf {
+    width: 100%;
+    background: #2a9d8f;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: opacity 0.2s;
+  }
+  .btn-pdf:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header id="game-header">
+    <span class="badge" id="step-badge">Puzzle 1 / 4</span>
+    <span class="timer" id="timer-display">⏱ 00:00</span>
+  </header>
+
+  <!-- ÉCRAN DE JEU (Énigme + Puzzle) -->
+  <div id="play-section">
+    <h1 id="puzzle-title">Souvenir #1</h1>
+    <p class="subtitle" id="unlock-instruction">Trouve le mot-clé grâce aux indices pour débloquer la photo mystère !</p>
+
+    <div id="lock-section">
+      <div class="clues-box" id="clues-container"></div>
+      <form class="unlock-form" id="unlock-form">
+        <input type="text" id="keyword-input" placeholder="Tape le mot-clé ici..." autocomplete="off" required>
+        <button type="submit" class="btn-primary">Valider</button>
+      </form>
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+
+    <div id="puzzle-section">
+      <p class="puzzle-help" id="puzzle-help">Touche une pièce puis une autre pour les échanger et reconstituer la photo !</p>
+      <div class="moves-counter" id="moves-counter">Coups joués : 0</div>
+      <div id="puzzle-board"></div>
+      <div id="success-box">
+        <div class="moves-badge" id="puzzle-moves-recap"></div>
+        <p id="sweet-message"></p>
+        <button class="btn-primary" id="next-btn">Passer au souvenir suivant ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÉCRAN RÉCAPITULATIF FINAL -->
+  <div id="summary-section">
+    <h1>❤️ Tous les souvenirs sont reconstitués ! ❤️</h1>
+    <p class="subtitle">Voici le bilan officiel de ton enquête amoureuse :</p>
+
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="stat-value" id="total-time-stat">00:00</div>
+        <div class="stat-label">Temps total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="total-errors-stat">0</div>
+        <div class="stat-label">Erreurs énigmes</div>
+      </div>
+    </div>
+
+    <div id="recap-list"></div>
+
+    <button class="btn-pdf" id="download-pdf-btn">📄 Télécharger le récapitulatif en PDF</button>
+  </div>
+</div>
+
+<script>
+// =========================================================================
+// ZONE À PERSONNALISER PAR TOI (TES 4 PHOTOS, INDICES, MOTS-CLÉS & TEXTES)
+// =========================================================================
+const PUZZLES = [
+  {
+    title: "Souvenir n°1",
+    image: "photo1.jpg",
+    gridSize: 3,
+    keyword: "ASCENSEUR",
+    clues: [
+      "Indice 1 : C'est un petit espace clos qui ne fait que des allers-retours du matin au soir, mais qui ne voyage jamais vraiment.",
+      "Indice 2 : On y passe obligatoirement à deux à chaque fois qu'on arrive chez moi ou qu'on en repart.",
+      "Indice 3 : Notre studio photo officiel à chaque sortie, équipé d'un grand miroir et de boutons numérotés."
+    ],
+    successMessage: "Un moment tellement banal du quotidien qui est juste parfait, immortalisation de nos passages toujours accompagnée de sa petite photo. Souvent on l'utilise pendant de bons moments parce qu'on va passer la soirée ensemble, ou alors pour des moments moins sympas comme le matin à 7h40 quand on doit se quitter pour la journée ❤️"
+  },
+  {
+    title: "Souvenir n°2",
+    image: "photo2.jpg",
+    gridSize: 3,
+    keyword: "MONT D'OR",
+    clues: [
+      "Indice 1 : C'est le nom d'une soirée spéciale qu'on a faite tous les deux.",
+      "Indice 2 : C'est quelque chose de super moelleux et trop bon.",
+      "Indice 3 : Quelque chose de chaud qui se met au four et qui se mange avec du pain !"
+    ],
+    successMessage: "Notre fameuse soirée Mont d'Or ❤️ La fameuse soirée parfaite ! Qu'est ce que je l'attendais celle là !"
+  },
+  {
+    title: "Souvenir n°3",
+    image: "photo3.jpg",
+    gridSize: 3,
+    keyword: "AMOUR",
+    clues: [
+      "Indice 1 : C'est quelque chose qui ne se voit pas, mais qui se ressent un peu plus fort chaque jour depuis qu'on est ensemble.",
+      "Indice 2 : C'est ce qu'on lit dans nos regards sur cette photo tous les deux.",
+      "Indice 3 : Un mot tout simple en 5 lettres qui commence par un A et qui résume tout ce que je ressens pour toi."
+    ],
+    successMessage: "Juste nous deux, tout simplement ❤️ Il n'y a pas besoin de plus quand je suis avec toi !"
+  },
+  {
+    title: "Souvenir n°4",
+    image: "photo4.jpg",
+    gridSize: 4,
+    keyword: "BOUQUET",
+    clues: [
+      "Indice 1 : C'était une grande première entre nous, offerte pour fêter des retrouvailles après une semaine loin l'un de l'autre.",
+      "Indice 2 : Je te l'ai apporté juste après ta semaine passée à Marseille.",
+      "Indice 3 : Un assemblage de fleurs choisi spécialement pour toi en 7 lettres."
+    ],
+    successMessage: "Ton tout premier bouquet ❤️ Après cette semaine à Marseille sans toi, j'avais trop hâte de te retrouver et de te faire plaisir. Et ce n'était que le premier d'une longue liste !"
+  }
+];
+// =========================================================================
+
+let currentIndex = 0;
+let revealedClues = 1;
+let startTime = Date.now();
+let timerInterval = null;
+let selectedTileIndex = null;
+let boardOrder = [];
+let currentMoves = 0;
+
+// Historique des résultats pour le bilan et le PDF
+const stats = PUZZLES.map((p, idx) => ({
+  puzzleNumber: idx + 1,
+  title: p.title,
+  image: p.image,
+  keyword: p.keyword,
+  clues: p.clues,
+  wrongAttempts: [],
+  cluesUsed: 1,
+  movesMade: 0,
+  minMoves: 0
+}));
+
+// Normalisation (ignore majuscules, accents, espaces, apostrophes et tirets)
+function normalizeText(str) {
+  return str
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\s'-]/g, "");
+}
+
+// Calcul mathématique exact du nombre minimum d'échanges (swaps) pour trier la permutation
+// Formule : N - C (N = nombre de pièces, C = nombre de cycles disjoints)
+function computeMinSwaps(arr) {
+  const n = arr.length;
+  const visited = new Array(n).fill(false);
+  let swaps = 0;
+
+  for (let i = 0; i < n; i++) {
+    if (visited[i] || arr[i] === i) continue;
+    let cycleSize = 0;
+    let j = i;
+    while (!visited[j]) {
+      visited[j] = true;
+      j = arr[j];
+      cycleSize++;
+    }
+    if (cycleSize > 1) {
+      swaps += cycleSize - 1;
+    }
+  }
+  return swaps;
+}
+
+function formatDuration(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const min = String(Math.floor(totalSec / 60)).padStart(2, "0");
+  const sec = String(totalSec % 60).padStart(2, "0");
+  return `${min}:${sec}`;
+}
+
+function startTimer() {
+  startTime = Date.now();
+  timerInterval = setInterval(() => {
+    document.getElementById("timer-display").textContent = "⏱ " + formatDuration(Date.now() - startTime);
+  }, 500);
+}
+
+function renderClues() {
+  const puzzle = PUZZLES[currentIndex];
+  const container = document.getElementById("clues-container");
+  container.innerHTML = "";
+
+  for (let i = 0; i < revealedClues; i++) {
+    const div = document.createElement("div");
+    div.className = "clue-item";
+    div.innerHTML = `<span class="clue-label">💡 </span>${puzzle.clues[i]}`;
+    container.appendChild(div);
+  }
+
+  if (revealedClues < puzzle.clues.length) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn-hint";
+    btn.textContent = `Débloquer l'indice ${revealedClues + 1} / ${puzzle.clues.length}`;
+    btn.onclick = () => {
+      revealedClues++;
+      stats[currentIndex].cluesUsed = revealedClues;
+      renderClues();
+    };
+    container.appendChild(btn);
+  }
+}
+
+function loadStep(index) {
+  currentIndex = index;
+  revealedClues = 1;
+  selectedTileIndex = null;
+  currentMoves = 0;
+
+  const puzzle = PUZZLES[currentIndex];
+  document.getElementById("step-badge").textContent = `Puzzle ${currentIndex + 1} / ${PUZZLES.length}`;
+  document.getElementById("puzzle-title").textContent = puzzle.title;
+  document.getElementById("unlock-instruction").style.display = "block";
+  document.getElementById("lock-section").style.display = "block";
+  document.getElementById("puzzle-section").style.display = "none";
+  document.getElementById("success-box").style.display = "none";
+  document.getElementById("puzzle-help").style.display = "block";
+  document.getElementById("keyword-input").value = "";
+  document.getElementById("error-msg").textContent = "";
+
+  renderClues();
+}
+
+// Validation du mot-clé
+document.getElementById("unlock-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const input = document.getElementById("keyword-input");
+  const rawVal = input.value.trim();
+  if (!rawVal) return;
+
+  const puzzle = PUZZLES[currentIndex];
+  if (normalizeText(rawVal) === normalizeText(puzzle.keyword)) {
+    document.getElementById("error-msg").textContent = "";
+    openPuzzle();
+  } else {
+    stats[currentIndex].wrongAttempts.push(rawVal);
+    if (revealedClues < puzzle.clues.length) {
+      revealedClues++;
+      stats[currentIndex].cluesUsed = revealedClues;
+      renderClues();
+      document.getElementById("error-msg").textContent = `Raté ("${rawVal}") ! Un nouvel indice vient d'apparaître 👆`;
+    } else {
+      document.getElementById("error-msg").textContent = `Toujours pas ("${rawVal}") ! Relis bien les 3 indices 😉`;
+    }
+    input.value = "";
+    input.focus();
+  }
+});
+
+// Création et mélange du puzzle
+function openPuzzle() {
+  document.getElementById("lock-section").style.display = "none";
+  document.getElementById("unlock-instruction").style.display = "none";
+  document.getElementById("puzzle-section").style.display = "flex";
+
+  currentMoves = 0;
+  document.getElementById("moves-counter").textContent = "Coups joués : 0";
+
+  const size = PUZZLES[currentIndex].gridSize;
+  const totalTiles = size * size;
+  boardOrder = Array.from({ length: totalTiles }, (_, i) => i);
+
+  // Mélange garanti non résolu au départ (avec au moins 4 coups minimum pour un vrai challenge)
+  do {
+    for (let i = boardOrder.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [boardOrder[i], boardOrder[j]] = [boardOrder[j], boardOrder[i]];
+    }
+  } while (computeMinSwaps(boardOrder) < Math.min(4, totalTiles - 1));
+
+  // Enregistrement du nombre minimum de coups possibles pour cette configuration
+  stats[currentIndex].minMoves = computeMinSwaps(boardOrder);
+
+  renderBoard();
+}
+
+function renderBoard() {
+  const puzzle = PUZZLES[currentIndex];
+  const size = puzzle.gridSize;
+  const board = document.getElementById("puzzle-board");
+  board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+  board.innerHTML = "";
+
+  boardOrder.forEach((pieceIndex, slotIndex) => {
+    const tile = document.createElement("div");
+    tile.className = "tile" + (selectedTileIndex === slotIndex ? " selected" : "");
+
+    const row = Math.floor(pieceIndex / size);
+    const col = pieceIndex % size;
+    const posX = size > 1 ? (col / (size - 1)) * 100 : 0;
+    const posY = size > 1 ? (row / (size - 1)) * 100 : 0;
+
+    tile.style.backgroundImage = `url('${puzzle.image}')`;
+    tile.style.backgroundSize = `${size * 100}% ${size * 100}%`;
+    tile.style.backgroundPosition = `${posX}% ${posY}%`;
+
+    tile.onclick = () => handleTileClick(slotIndex);
+    board.appendChild(tile);
+  });
+}
+
+function handleTileClick(slotIndex) {
+  if (document.getElementById("success-box").style.display === "block") return;
+
+  if (selectedTileIndex === null) {
+    selectedTileIndex = slotIndex;
+    renderBoard();
+  } else if (selectedTileIndex === slotIndex) {
+    selectedTileIndex = null;
+    renderBoard();
+  } else {
+    // Échange des deux pièces -> +1 coup
+    [boardOrder[selectedTileIndex], boardOrder[slotIndex]] = [boardOrder[slotIndex], boardOrder[selectedTileIndex]];
+    selectedTileIndex = null;
+    currentMoves++;
+    document.getElementById("moves-counter").textContent = `Coups joués : ${currentMoves}`;
+    renderBoard();
+    checkWin();
+  }
+}
+
+function checkWin() {
+  const isSolved = boardOrder.every((val, idx) => val === idx);
+  if (!isSolved) return;
+
+  stats[currentIndex].movesMade = currentMoves;
+
+  const puzzle = PUZZLES[currentIndex];
+  document.getElementById("puzzle-help").style.display = "none";
+  document.getElementById("puzzle-moves-recap").textContent =
+    `Réussi en ${currentMoves} coups (minimum possible : ${stats[currentIndex].minMoves})`;
+  document.getElementById("sweet-message").textContent = puzzle.successMessage;
+
+  const nextBtn = document.getElementById("next-btn");
+  nextBtn.textContent = currentIndex < PUZZLES.length - 1
+    ? "Passer au souvenir suivant ➔"
+    : "Voir mon bilan final ❤️";
+  document.getElementById("success-box").style.display = "block";
+}
+
+document.getElementById("next-btn").addEventListener("click", () => {
+  if (currentIndex < PUZZLES.length - 1) {
+    loadStep(currentIndex + 1);
+  } else {
+    showFinalSummary();
+  }
+});
+
+let finalDurationText = "00:00";
+
+function showFinalSummary() {
+  clearInterval(timerInterval);
+  finalDurationText = formatDuration(Date.now() - startTime);
+
+  document.getElementById("game-header").style.display = "none";
+  document.getElementById("play-section").style.display = "none";
+  document.getElementById("summary-section").style.display = "block";
+
+  const totalErrors = stats.reduce((sum, s) => sum + s.wrongAttempts.length, 0);
+  document.getElementById("total-time-stat").textContent = finalDurationText;
+  document.getElementById("total-errors-stat").textContent = totalErrors;
+
+  const recapList = document.getElementById("recap-list");
+  recapList.innerHTML = "";
+
+  stats.forEach((s) => {
+    const item = document.createElement("div");
+    item.className = "recap-item";
+    const errorsText = s.wrongAttempts.length === 0
+      ? "Aucune erreur (du premier coup !)"
+      : `${s.wrongAttempts.length} erreur(s) : ${s.wrongAttempts.join(", ")}`;
+
+    item.innerHTML = `
+      <img class="recap-thumb" src="${s.image}" alt="${s.title}">
+      <div class="recap-details">
+        <div class="recap-title">${s.title} — Mot-clé : ${s.keyword}</div>
+        <div>Coups puzzle : <strong>${s.movesMade}</strong> (min. possible : ${s.minMoves})</div>
+        <div>Indices utilisés : ${s.cluesUsed} / ${s.clues.length}</div>
+        <div>Essais énigme : ${errorsText}</div>
+      </div>
+    `;
+    recapList.appendChild(item);
+  });
+}
+
+// Convertit l'image (même chemin relatif sur GitHub Pages) en JPEG miniature pour jsPDF
+function loadImageAsDataURL(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const size = 240; // Miniature nette et légère pour le PDF
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+
+        // Recadrage centré carré automatique si la photo n'est pas parfaitement 1:1
+        const minSide = Math.min(img.naturalWidth, img.naturalHeight);
+        const sx = (img.naturalWidth - minSide) / 2;
+        const sy = (img.naturalHeight - minSide) / 2;
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      } catch (err) {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+// Génération et téléchargement du PDF récapitulatif avec miniatures photos
+document.getElementById("download-pdf-btn").addEventListener("click", async () => {
+  const btn = document.getElementById("download-pdf-btn");
+  btn.disabled = true;
+  btn.textContent = "⏳ Création du PDF en cours...";
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Préchargement des 4 miniatures en parallèle
+    const thumbnails = await Promise.all(stats.map((s) => loadImageAsDataURL(s.image)));
+
+    let y = 20;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(230, 57, 70);
+    doc.text("Recapitulatif — Nos Souvenirs en Puzzle", 15, y);
+
+    y += 10;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(40, 40, 40);
+    const totalErrors = stats.reduce((sum, s) => sum + s.wrongAttempts.length, 0);
+    const totalMoves = stats.reduce((sum, s) => sum + s.movesMade, 0);
+    const totalMinMoves = stats.reduce((sum, s) => sum + s.minMoves, 0);
+    doc.text(
+      `Temps total : ${finalDurationText}   |   Erreurs enigmes : ${totalErrors}   |   Coups totaux : ${totalMoves} (min. ${totalMinMoves})`,
+      15,
+      y
+    );
+
+    y += 8;
+    doc.setDrawColor(230, 57, 70);
+    doc.line(15, y, 195, y);
+    y += 10;
+
+    stats.forEach((s, idx) => {
+      if (y > 235) {
+        doc.addPage();
+        y = 20;
+      }
+
+      const startY = y;
+      const thumbData = thumbnails[idx];
+      const imgSize = 28; // 28x28 mm dans le PDF
+      const textLeftX = thumbData ? 15 + imgSize + 6 : 15;
+      const maxTextWidth = thumbData ? 195 - textLeftX : 180;
+
+      // Miniature photo à gauche
+      if (thumbData) {
+        doc.setDrawColor(230, 57, 70);
+        doc.rect(14.5, startY - 0.5, imgSize + 1, imgSize + 1);
+        doc.addImage(thumbData, "JPEG", 15, startY, imgSize, imgSize);
+      }
+
+      // Titre du souvenir
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12.5);
+      doc.setTextColor(230, 57, 70);
+      doc.text(`${s.title} — Mot-cle : ${s.keyword}`, textLeftX, y + 4);
+      y += 10;
+
+      // Statistiques coups puzzle + indices
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(30, 41, 59);
+      doc.text(
+        `Puzzle : ${s.movesMade} coups realises (minimum possible : ${s.minMoves})  |  Indices utilises : ${s.cluesUsed}/${s.clues.length}`,
+        textLeftX,
+        y
+      );
+      y += 6;
+
+      // Liste des 3 indices
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      doc.setTextColor(70, 70, 70);
+      s.clues.forEach((clue) => {
+        const lines = doc.splitTextToSize(`• ${clue}`, maxTextWidth);
+        doc.text(lines, textLeftX, y);
+        y += lines.length * 4.5;
+      });
+
+      y += 1.5;
+      // Essais et erreurs
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(40, 40, 40);
+      const attemptsLine = s.wrongAttempts.length === 0
+        ? "Essais enigme : Aucune erreur (trouve du premier coup !)"
+        : `Essais enigme (${s.wrongAttempts.length} erreur(s)) : ${s.wrongAttempts.join(", ")}`;
+      const wrappedAttempts = doc.splitTextToSize(attemptsLine, maxTextWidth);
+      doc.text(wrappedAttempts, textLeftX, y);
+      y += wrappedAttempts.length * 4.8;
+
+      // S'assure que le bloc suivant descend bien sous la miniature photo
+      y = Math.max(y, startY + imgSize + 2) + 8;
+    });
+
+    doc.save("Recapitulatif-Puzzles-Manon-Tim.pdf");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "📄 Télécharger le récapitulatif en PDF";
+  }
+});
+
+// Lancement initial
+startTimer();
+loadStep(0);
+</script>
+</body>
+</html>
