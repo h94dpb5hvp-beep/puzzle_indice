@@ -259,6 +259,13 @@
     color: #ff758f;
     margin-bottom: 4px;
   }
+  .recap-sweet {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.15);
+    font-style: italic;
+    color: #ffccd5;
+  }
   .btn-pdf {
     width: 100%;
     background: #2a9d8f;
@@ -405,6 +412,7 @@ const stats = PUZZLES.map((p, idx) => ({
   image: p.image,
   keyword: p.keyword,
   clues: p.clues,
+  successMessage: p.successMessage,
   wrongAttempts: [],
   cluesUsed: 1,
   movesMade: 0,
@@ -417,8 +425,17 @@ function normalizeText(str) {
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[\s'-]/g, "");
+}
+
+// Nettoie les emojis uniquement pour la police standard Helvetica de jsPDF
+function cleanForPdf(str) {
+  return str
+    .replace(/❤️|❤/g, "<3")
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 // Calcul mathématique exact du nombre minimum d'échanges (swaps) pour trier la permutation
@@ -660,6 +677,7 @@ function showFinalSummary() {
         <div>Coups puzzle : <strong>${s.movesMade}</strong> (min. possible : ${s.minMoves})</div>
         <div>Indices utilisés : ${s.cluesUsed} / ${s.clues.length}</div>
         <div>Essais énigme : ${errorsText}</div>
+        <div class="recap-sweet">« ${s.successMessage} »</div>
       </div>
     `;
     recapList.appendChild(item);
@@ -673,13 +691,12 @@ function loadImageAsDataURL(src) {
     img.crossOrigin = "anonymous";
     img.onload = () => {
       try {
-        const size = 240; // Miniature nette et légère pour le PDF
+        const size = 240;
         const canvas = document.createElement("canvas");
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext("2d");
 
-        // Recadrage centré carré automatique si la photo n'est pas parfaitement 1:1
         const minSide = Math.min(img.naturalWidth, img.naturalHeight);
         const sx = (img.naturalWidth - minSide) / 2;
         const sy = (img.naturalHeight - minSide) / 2;
@@ -695,7 +712,7 @@ function loadImageAsDataURL(src) {
   });
 }
 
-// Génération et téléchargement du PDF récapitulatif avec miniatures photos
+// Génération et téléchargement du PDF récapitulatif avec miniatures photos + mots doux
 document.getElementById("download-pdf-btn").addEventListener("click", async () => {
   const btn = document.getElementById("download-pdf-btn");
   btn.disabled = true;
@@ -705,7 +722,6 @@ document.getElementById("download-pdf-btn").addEventListener("click", async () =
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // Préchargement des 4 miniatures en parallèle
     const thumbnails = await Promise.all(stats.map((s) => loadImageAsDataURL(s.image)));
 
     let y = 20;
@@ -733,14 +749,14 @@ document.getElementById("download-pdf-btn").addEventListener("click", async () =
     y += 10;
 
     stats.forEach((s, idx) => {
-      if (y > 235) {
+      if (y > 220) {
         doc.addPage();
         y = 20;
       }
 
       const startY = y;
       const thumbData = thumbnails[idx];
-      const imgSize = 28; // 28x28 mm dans le PDF
+      const imgSize = 30;
       const textLeftX = thumbData ? 15 + imgSize + 6 : 15;
       const maxTextWidth = thumbData ? 195 - textLeftX : 180;
 
@@ -774,7 +790,7 @@ document.getElementById("download-pdf-btn").addEventListener("click", async () =
       doc.setFontSize(9.5);
       doc.setTextColor(70, 70, 70);
       s.clues.forEach((clue) => {
-        const lines = doc.splitTextToSize(`• ${clue}`, maxTextWidth);
+        const lines = doc.splitTextToSize(`• ${cleanForPdf(clue)}`, maxTextWidth);
         doc.text(lines, textLeftX, y);
         y += lines.length * 4.5;
       });
@@ -786,10 +802,18 @@ document.getElementById("download-pdf-btn").addEventListener("click", async () =
       doc.setTextColor(40, 40, 40);
       const attemptsLine = s.wrongAttempts.length === 0
         ? "Essais enigme : Aucune erreur (trouve du premier coup !)"
-        : `Essais enigme (${s.wrongAttempts.length} erreur(s)) : ${s.wrongAttempts.join(", ")}`;
+        : `Essais enigme (${s.wrongAttempts.length} erreur(s)) : ${cleanForPdf(s.wrongAttempts.join(", "))}`;
       const wrappedAttempts = doc.splitTextToSize(attemptsLine, maxTextWidth);
       doc.text(wrappedAttempts, textLeftX, y);
-      y += wrappedAttempts.length * 4.8;
+      y += wrappedAttempts.length * 4.8 + 2;
+
+      // Message souvenir (successMessage)
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(9.5);
+      doc.setTextColor(150, 35, 55);
+      const sweetLines = doc.splitTextToSize(`"${cleanForPdf(s.successMessage)}"`, maxTextWidth);
+      doc.text(sweetLines, textLeftX, y);
+      y += sweetLines.length * 4.6;
 
       // S'assure que le bloc suivant descend bien sous la miniature photo
       y = Math.max(y, startY + imgSize + 2) + 8;
