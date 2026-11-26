@@ -318,39 +318,39 @@ const PUZZLES = [
   },
   {
     title: "Souvenir n°2",
-    image: "photo2.jpg", // <-- Remplace par le nom de ta 2ème photo
+    image: "photo2.jpg",
     gridSize: 3,
-    keyword: "BOWLING",  // <-- Mot-clé n°2
+    keyword: "MONT D'OR",
     clues: [
-      "Indice 1 : Une activité où tu me mets la raclée à chaque fois...",
-      "Indice 2 : On y porte des chaussures pas très stylées.",
-      "Indice 3 : Objectif : faire un strike !"
+      "Indice 1 : C'est le nom d'une soirée spéciale qu'on a faite tous les deux.",
+      "Indice 2 : C'est quelque chose de super moelleux et trop bon.",
+      "Indice 3 : Quelque chose de chaud qui se met au four et qui se mange avec du pain !"
     ],
-    successMessage: "Même quand tu me bats à plates coutures, j'adore nos soirées tous les deux 😘"
+    successMessage: "Notre fameuse soirée Mont d'Or ❤️ La fameuse soirée parfaite ! Qu'est ce que je l'attendais celle là !"
   },
   {
     title: "Souvenir n°3",
-    image: "photo3.jpg", // <-- Remplace par le nom de ta 3ème photo
+    image: "photo3.jpg",
     gridSize: 3,
-    keyword: "LEGO",     // <-- Mot-clé n°3
+    keyword: "AMOUR",
     clues: [
-      "Indice 1 : On adore construire ça ensemble pendant des heures.",
-      "Indice 2 : Gare à ne pas marcher dessus pieds nus !",
-      "Indice 3 : Petites briques colorées en 4 lettres."
+      "Indice 1 : C'est quelque chose qui ne se voit pas, mais qui se ressent un peu plus fort chaque jour depuis qu'on est ensemble.",
+      "Indice 2 : C'est ce qu'on lit dans nos regards sur cette photo tous les deux.",
+      "Indice 3 : Un mot tout simple en 5 lettres qui commence par un A et qui résume tout ce que je ressens pour toi."
     ],
-    successMessage: "Avec toi, on construit bien plus que des briques : on construit notre histoire ❤️"
+    successMessage: "Juste nous deux, tout simplement ❤️ Il n'y a pas besoin de plus quand je suis avec toi !"
   },
   {
     title: "Souvenir n°4",
-    image: "photo4.jpg", // <-- Remplace par le nom de ta 4ème photo
-    gridSize: 4,         // Un peu plus corsé pour le dernier (4x4 = 16 pièces) !
-    keyword: "AMOUR",    // <-- Mot-clé n°4
+    image: "photo4.jpg",
+    gridSize: 4,
+    keyword: "BOUQUET",
     clues: [
-      "Indice 1 : Ce que je ressens pour toi un peu plus chaque jour.",
-      "Indice 2 : Le mot qui résume toutes ces photos.",
-      "Indice 3 : 5 lettres, commence par A."
+      "Indice 1 : C'était une grande première entre nous, offerte pour fêter des retrouvailles après une semaine loin l'un de l'autre.",
+      "Indice 2 : Je te l'ai apporté juste après ta semaine passée à Marseille.",
+      "Indice 3 : Un assemblage de fleurs choisi spécialement pour toi en 7 lettres."
     ],
-    successMessage: "Bravo mon cœur ! Tu as débloqué tous nos souvenirs. Je t'aime plus que tout ❤️"
+    successMessage: "Ton tout premier bouquet ❤️ Après cette semaine à Marseille sans toi, j'avais trop hâte de te retrouver et de te faire plaisir. Et ce n'était que le premier d'une longue liste !"
   }
 ];
 // =========================================================================
@@ -378,7 +378,8 @@ function normalizeText(str) {
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s'-]/g, "");
 }
 
 function formatDuration(ms) {
