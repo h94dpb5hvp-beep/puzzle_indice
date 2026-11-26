@@ -310,9 +310,9 @@ const PUZZLES = [
     gridSize: 3,         // 3 = grille 3x3 (9 pièces) | 4 = grille 4x4 (16 pièces)
     keyword: "ANTIBES",  // <-- Mot-clé à trouver (la casse et les accents sont ignorés automatiquement)
     clues: [
-      "Indice 1 : C'est la ville où l'on se retrouve tout le temps...",
-      "Indice 2 : Elle est au bord de la mer sur la Côte d'Azur.",
-      "Indice 3 : Commence par la lettre A et finit par S."
+      "Indice 1 : C'est un petit espace clos qui ne fait que des allers-retours du matin au soir, mais qui ne voyage jamais vraiment. ",
+      "Indice 2 : On y passe obligatoirement à deux à chaque fois qu'on arrive chez moi ou qu'on en repart.",
+      "Indice 3 : Notre studio photo officiel à chaque sortie, équipé d'un grand miroir et de boutons numérotés."
     ],
     successMessage: "Notre premier souvenir ensemble ❤️ Chaque moment passé ici avec toi est gravé dans ma tête."
   },
